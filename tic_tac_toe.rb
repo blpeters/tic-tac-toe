@@ -1,6 +1,16 @@
 # frozen_string_literal: true
 
+# Choose randomly between two options. In this case, choose who starts the game.
+module CoinFlip
+  def coin_flip(first_value, second_value)
+    arr = [first_value, second_value]
+    arr.sample
+  end
+end
+
 class TicTacToe
+  include CoinFlip
+  
   attr_accessor :square_values, :winner, :player1, :player2
 
   # TODO: when a new instance of Board is created, a new board needs to be
@@ -32,20 +42,29 @@ class TicTacToe
   def play(first, second)
     @game_over = false
     @square_values = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-    current_player = first
-    available_squares = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    current_player = coin_flip(first, second)
+    @available_squares = [1, 2, 3, 4, 5, 6, 7, 8, 9]
     until @game_over
       display
-      print "#{current_player.name}, Select Your square from the following available squares: #{available_squares}: "
-      selection = gets.chomp.to_i
-      # TODO: Don't allow players to select a taken square.
-      available_squares.delete(selection)
-      declare_tie if available_squares.length == 0
-      update(current_player.marker, selection)
+      puts "#{current_player.name} will go first this round....\n"
+      selected_square = select_square(current_player)
+      declare_tie if @available_squares.length == 0
+      update(current_player.marker, selected_square)
       check_winner(current_player)
       current_player = current_player == first ? second : first
       # winner = true
     end
+  end
+
+  def select_square(player)
+    print "#{player.name}, Select Your square from the following available squares #{@available_squares}: "
+    selection = gets.chomp.to_i
+    until @available_squares.include?(selection)
+      print "Invalid square. Please choose from the available squares #{@available_squares}: "
+      selection = gets.chomp.to_i
+    end  
+    @available_squares.delete(selection)
+    return selection
   end
 
   def show_score
@@ -138,7 +157,13 @@ class Player
     puts "Please enter Player #{number}\'s name:"
     @name = gets.chomp.upcase
     puts "#{self.name}, please enter what letter you would like to use as a marker:"
-    @marker = gets.chomp.upcase
+    # TODO: Verifiy it's a single alphabetical character
+    input = gets.chomp.upcase
+    until input.length == 1 && input.match(/[A-Z]/)
+      print "invalid marker. Please choose a single alphabetical character: "
+      input = gets.chomp.upcase
+    end
+    @marker = input
     @score = 0
   end
 end
