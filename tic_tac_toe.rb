@@ -10,7 +10,7 @@ end
 
 class TicTacToe
   include CoinFlip
-  
+
   attr_accessor :square_values, :winner, :player1, :player2
 
   # TODO: when a new instance of Board is created, a new board needs to be
@@ -62,9 +62,9 @@ class TicTacToe
     until @available_squares.include?(selection)
       print "Invalid square. Please choose from the available squares #{@available_squares}: "
       selection = gets.chomp.to_i
-    end  
+    end
     @available_squares.delete(selection)
-    return selection
+    selection
   end
 
   def show_score
@@ -156,11 +156,11 @@ class Player
     @player_num = number
     puts "Please enter Player #{number}\'s name:"
     @name = gets.chomp.upcase
-    puts "#{self.name}, please enter what letter you would like to use as a marker:"
+    puts "#{name}, please enter what letter you would like to use as a marker:"
     # TODO: Verifiy it's a single alphabetical character
     input = gets.chomp.upcase
     until input.length == 1 && input.match(/[A-Z]/)
-      print "invalid marker. Please choose a single alphabetical character: "
+      print 'invalid marker. Please choose a single alphabetical character: '
       input = gets.chomp.upcase
     end
     @marker = input
