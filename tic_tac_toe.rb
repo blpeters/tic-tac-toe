@@ -28,7 +28,7 @@ class TicTacToe
   private
 
   def display
-    # TODO: look further into Ruby HEREDOCS
+    # Print out current board to console
     puts <<~BOARD
       \n
       #{square_values[0]} | #{square_values[1]} | #{square_values[2]}
@@ -43,10 +43,11 @@ class TicTacToe
     @game_over = false
     @square_values = [1, 2, 3, 4, 5, 6, 7, 8, 9]
     current_player = coin_flip(first, second)
+    puts "#{current_player.name} will go first this round....\n"
+    # initialize array to keep track of squares that are still available
     @available_squares = [1, 2, 3, 4, 5, 6, 7, 8, 9]
     until @game_over
       display
-      puts "#{current_player.name} will go first this round....\n"
       selected_square = select_square(current_player)
       declare_tie if @available_squares.length == 0
       update(current_player.marker, selected_square)
