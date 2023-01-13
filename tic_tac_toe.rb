@@ -8,51 +8,90 @@ module CoinFlip
   end
 end
 
-class TicTacToe
-  include CoinFlip
+class Board
+  attr_accessor :square_values
 
-  attr_accessor :square_values, :winner, :player1, :player2
-
-  # TODO: when a new instance of Board is created, a new board needs to be
-  # displayed and a new board array with 9 slots needs to be created.
-  def initialize(player1, player2)
+  def initialize
     @square_values = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-    @player1 = player1
-    @player2 = player2
-    @p1score = player1.score
-    @p2score = player2.score
-    @game_over = false
-    play(player1, player2)
+  end
+
+  def display
+    puts <<~BOARD
+    \n
+    #{square_values[0]} | #{square_values[1]} | #{square_values[2]}
+    ----------
+    #{square_values[3]} | #{square_values[4]} | #{square_values[5]}
+    ----------
+    #{square_values[6]} | #{square_values[7]} | #{square_values[8]}\n\n
+  BOARD
+  end
+
+  def update(symbol, index)
+    square_values[index - 1] = symbol
+  end
+
+  def winner?(player)
+    check_column_winner(player) || check_row_winner(player) || check_diagonal_winner(player)
   end
 
   private
+  
+  def check_column_winner(player)
+    col1 = [square_values[0], square_values[3], square_values[6]]
+    col2 = [square_values[1], square_values[4], square_values[7]]
+    col3 = [square_values[2], square_values[5], square_values[8]]
+    return true if col1.all?(player.marker) || col2.all?(player.marker) || col3.all?(player.marker)
 
-  def display
-    # TODO: look further into Ruby HEREDOCS
-    puts <<~BOARD
-      \n
-      #{square_values[0]} | #{square_values[1]} | #{square_values[2]}
-      ----------
-      #{square_values[3]} | #{square_values[4]} | #{square_values[5]}
-      ----------
-      #{square_values[6]} | #{square_values[7]} | #{square_values[8]}\n\n
-    BOARD
+    false
   end
 
-  def play(first, second)
+  def check_row_winner(player)
+    row1 = [square_values[0], square_values[1], square_values[2]]
+    row2 = [square_values[3], square_values[4], square_values[5]]
+    row3 = [square_values[6], square_values[7], square_values[8]]
+    return true if row1.all?(player.marker) || row2.all?(player.marker) || row3.all?(player.marker)
+
+    false
+  end
+
+  def check_diagonal_winner(player)
+    diag1 = [square_values[0], square_values[4], square_values[8]]
+    diag2 = [square_values[6], square_values[4], square_values[2]]
+    return true if diag1.all?(player.marker) || diag2.all?(player.marker)
+
+    false
+  end
+end
+
+# Runs one instance of the tic tac toe game between two instances of the player class.
+class TicTacToe
+  include CoinFlip
+
+  attr_reader :board
+  attr_accessor :square_values, :winner, :player1, :player2
+
+  def initialize
+    @board = Board.new
+    @player1 = Player.new(1)
+    @player2 = Player.new(2)
+    @p1score = player1.score
+    @p2score = player2.score
     @game_over = false
-    @square_values = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-    current_player = coin_flip(first, second)
+  end
+
+  def play
+    @game_over = false
+    @board = Board.new
+    current_player = coin_flip(player1, player2)
     @available_squares = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    puts "#{current_player.name} will go first this round....\n"
     until @game_over
-      display
-      puts "#{current_player.name} will go first this round....\n"
+      board.display
       selected_square = select_square(current_player)
-      declare_tie if @available_squares.length == 0
-      update(current_player.marker, selected_square)
-      check_winner(current_player)
-      current_player = current_player == first ? second : first
-      # winner = true
+      board.update(current_player.marker, selected_square)
+      declare_winner(current_player) if board.winner?(current_player)
+      declare_tie if @available_squares.empty?
+      current_player = current_player == player1 ? player2 : player1
     end
   end
 
@@ -79,7 +118,7 @@ class TicTacToe
       print 'Do you want to play again? (y/n): '
       answer = gets.chomp.strip.upcase
       if answer == 'Y'
-        play(player1, player2)
+        play
         done = true
       elsif answer == 'N'
         puts 'Okay, bye!'
@@ -92,7 +131,7 @@ class TicTacToe
   end
 
   def declare_tie
-    display
+    board.display
     @game_over = true
     puts "TIE GAME - NOBODY WINS\n\n"
     show_score
@@ -100,51 +139,12 @@ class TicTacToe
   end
 
   def declare_winner(player)
-    display
+    @game_over = true
+    board.display
     puts "#{player.name.upcase} is the Winner!\n\n"
     player.score += 1
     show_score
     replay
-  end
-
-  def check_winner(player)
-    if check_column_winner(player) || check_row_winner(player) || check_diagonal_winner(player)
-      @game_over = true
-      declare_winner(player)
-    end
-  end
-
-  def check_column_winner(player)
-    col_1 = [square_values[0], square_values[3], square_values[6]]
-    col_2 = [square_values[1], square_values[4], square_values[7]]
-    col_3 = [square_values[2], square_values[5], square_values[8]]
-    return true if col_1.all?(player.marker) || col_2.all?(player.marker) || col_3.all?(player.marker)
-
-    false
-  end
-
-  def check_row_winner(player)
-    row_1 = [square_values[0], square_values[1], square_values[2]]
-    row_2 = [square_values[3], square_values[4], square_values[5]]
-    row_3 = [square_values[6], square_values[7], square_values[8]]
-    return true if row_1.all?(player.marker) || row_2.all?(player.marker) || row_3.all?(player.marker)
-
-    false
-  end
-
-  def check_diagonal_winner(player)
-    diag_1 = [square_values[0], square_values[4], square_values[8]]
-    diag_2 = [square_values[6], square_values[4], square_values[2]]
-    return true if diag_1.all?(player.marker) || diag_2.all?(player.marker)
-
-    false
-  end
-
-  # The update method will take in parameters for the current player's symbol and
-  # what location (square) was chosen by the player and update that location
-  # in the array.
-  def update(symbol, location)
-    square_values[location - 1] = symbol
   end
 end
 
@@ -157,7 +157,6 @@ class Player
     puts "Please enter Player #{number}\'s name:"
     @name = gets.chomp.upcase
     puts "#{name}, please enter what letter you would like to use as a marker:"
-    # TODO: Verifiy it's a single alphabetical character
     input = gets.chomp.upcase
     until input.length == 1 && input.match(/[A-Z]/)
       print 'invalid marker. Please choose a single alphabetical character: '
@@ -168,6 +167,6 @@ class Player
   end
 end
 
-player1 = Player.new(1)
-player2 = Player.new(2)
-TicTacToe.new(player1, player2)
+game = TicTacToe.new
+game.play
+
